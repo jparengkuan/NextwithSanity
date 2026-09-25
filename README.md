@@ -6,7 +6,6 @@ Portfolio and blog for Jim Parengkuan, built with [Next.js](https://nextjs.org/)
 |---|---|
 | Website | https://jim-blog-wine.vercel.app |
 | Studio (Sanity hosted) | https://jim-blog.sanity.studio |
-| Studio (Vercel) | https://personalwebsite-six-bice.vercel.app |
 
 ## Stack
 

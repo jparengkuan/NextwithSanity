@@ -32,9 +32,13 @@ export default function ProjectRow({project, index}: {project: Project; index: n
         )}
         {hasFooter && (
           <div className="item-footer">
-            <p className="tag-list" aria-label="Technologies">
-              {tags?.join(' · ')}
-            </p>
+            {tags && tags.length > 0 && (
+              <ul className="tag-list" aria-label="Technologies">
+                {tags.map((tag) => (
+                  <li key={tag}>{tag}</li>
+                ))}
+              </ul>
+            )}
             {links && links.length > 0 && (
               <ul className="item-links" aria-label={`${title} links`}>
                 {links.map((link) => (

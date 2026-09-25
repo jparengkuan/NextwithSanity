@@ -1,7 +1,8 @@
 import type {Metadata} from 'next'
 
 import PageIntro from '@/app/components/portfolio/PageIntro'
-import {contactPageQuery} from '@/sanity/lib/queries'
+import SiteFooter from '@/app/components/portfolio/SiteFooter'
+import {contactPageQuery, homeQuery} from '@/sanity/lib/queries'
 import {sanityFetch} from '@/sanity/lib/live'
 import ContactForm from './ContactForm'
 
@@ -18,18 +19,22 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ContactPage() {
-  const [{data: page}, {data: plain}] = await Promise.all([
+  const [{data: page}, {data: plain}, {data: home}] = await Promise.all([
     sanityFetch({query: contactPageQuery}),
     // The success message is passed to a Client Component as a prop, so fetch it without stega
     sanityFetch({query: contactPageQuery, stega: false}),
+    sanityFetch({query: homeQuery}),
   ])
 
   return (
-    <main id="main-content" className="shell main-content">
-      <PageIntro content={page} fallback={fallback} />
-      <section className="contact motion-enter" aria-label="Contact form">
-        <ContactForm successMessage={plain?.successMessage || fallback.successMessage} />
-      </section>
-    </main>
+    <>
+      <main id="main-content" className="shell main-content">
+        <PageIntro content={page} fallback={fallback} />
+        <section className="contact motion-enter" aria-label="Contact form">
+          <ContactForm successMessage={plain?.successMessage || fallback.successMessage} />
+        </section>
+      </main>
+      <SiteFooter socials={home?.socials ?? []} />
+    </>
   )
 }
