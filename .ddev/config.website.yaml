@@ -1,0 +1,27 @@
+# Node dev servers for the Sanity + Next.js monorepo.
+# Next.js:        https://website.ddev.site
+# Sanity Studio:  https://website.ddev.site:3333
+
+web_extra_exposed_ports:
+  - name: nextjs
+    container_port: 3000
+    http_port: 80
+    https_port: 443
+  - name: studio
+    container_port: 3333
+    http_port: 3334
+    https_port: 3333
+
+web_extra_daemons:
+  - name: nextjs
+    command: "npm run dev --workspace=frontend -- --hostname 0.0.0.0 --port 3000"
+    directory: /var/www/html
+  - name: studio
+    command: "npm run dev --workspace=studio -- --host 0.0.0.0 --port 3333"
+    directory: /var/www/html
+
+# Process env takes precedence over the empty values in the .env files,
+# so the host (non-DDEV) setup keeps its localhost defaults.
+web_environment:
+  - NEXT_PUBLIC_SANITY_STUDIO_URL=https://website.ddev.site:3333
+  - SANITY_STUDIO_PREVIEW_URL=https://website.ddev.site

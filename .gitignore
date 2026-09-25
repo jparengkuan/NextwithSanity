@@ -1,35 +1,59 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
-/.pnp
+node_modules/
+.pnp
 .pnp.js
 .yarn/install-state.gz
 
 # turbo
-.turbo
+.turbo/
 
-# misc
-.DS_Store
-*.pem
+# next.js
+.next/
+out/
+next-env.d.ts
 
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# sanity
+.sanity/
+dist/
 
-# env files
+# testing
+coverage/
+
+# env files (keep the examples)
 .env
 .env.*
 !.env.example
 
 # vercel
-.vercel
+.vercel/
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
 
-# VS Code
-.vscode
-.env*
+# logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# misc
+.DS_Store
+Thumbs.db
+*.pem
+
+# editors
+.vscode/
+.idea/
+
+# ddev: config is committed, local/generated state is not
+# (ddev manages its own .ddev/.gitignore for generated files)
+.ddev/db_snapshots/
+.ddev/.dbimageBuild/
+.ddev/.webimageBuild/
+.ddev/mutagen/
+.ddev/xhprof/
+.ddev/config.local.yaml
+.ddev/config.*.local.yaml
