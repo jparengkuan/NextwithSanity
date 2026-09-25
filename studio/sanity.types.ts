@@ -127,13 +127,39 @@ export type Button = {
   link?: Link
 }
 
+export type Project = {
+  _id: string
+  _type: 'project'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  title: string
+  date: string
+  status?: string
+  summary?: string
+  details?: Array<string>
+  tags?: Array<string>
+  links?: Array<{
+    label: string
+    url: string
+    _type: 'projectLink'
+    _key: string
+  }>
+}
+
+export type SanityFileAssetReference = {
+  _ref: string
+  _type: 'reference'
+  _weak?: boolean
+  [internalGroqTypeReferenceTo]?: 'sanity.fileAsset'
+}
+
 export type Settings = {
   _id: string
   _type: 'settings'
   _createdAt: string
   _updatedAt: string
   _rev: string
-  title: string
   description?: Array<{
     children?: Array<{
       marks?: Array<string>
@@ -156,6 +182,12 @@ export type Settings = {
     _type: 'block'
     _key: string
   }>
+  contactEmail?: string
+  resume?: {
+    asset?: SanityFileAssetReference
+    media?: unknown
+    _type: 'file'
+  }
   ogImage?: {
     asset?: SanityImageAssetReference
     media?: unknown
@@ -217,7 +249,11 @@ export type Post = {
   _updatedAt: string
   _rev: string
   title: string
-  slug: Slug
+  slug?: Slug
+  externalUrl?: string
+  externalAuthor?: string
+  externalSite?: string
+  tags?: Array<string>
   content?: BlockContent
   excerpt?: string
   coverImage?: {
@@ -254,6 +290,75 @@ export type Slug = {
   _type: 'slug'
   current: string
   source?: string
+}
+
+export type ContactPage = {
+  _id: string
+  _type: 'contactPage'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  eyebrow?: string
+  heading: string
+  intro?: string
+  successMessage?: string
+}
+
+export type BlogsPage = {
+  _id: string
+  _type: 'blogsPage'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  eyebrow?: string
+  heading: string
+  intro?: string
+}
+
+export type ProjectsPage = {
+  _id: string
+  _type: 'projectsPage'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  eyebrow?: string
+  heading: string
+  intro?: string
+}
+
+export type Home = {
+  _id: string
+  _type: 'home'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  name: string
+  handle?: string
+  tagline?: string
+  bio?: Array<{
+    children?: Array<{
+      marks?: Array<string>
+      text?: string
+      _type: 'span'
+      _key: string
+    }>
+    style?: 'normal'
+    listItem?: never
+    markDefs?: Array<
+      {
+        _key: string
+      } & Link
+    >
+    level?: number
+    _type: 'block'
+    _key: string
+  }>
+  socials?: Array<{
+    label: string
+    url: string
+    _type: 'social'
+    _key: string
+  }>
 }
 
 export type SanityAssistInstructionTask = {
@@ -500,6 +605,8 @@ export type AllSanitySchemaTypes =
   | BlockContentTextOnly
   | BlockContent
   | Button
+  | Project
+  | SanityFileAssetReference
   | Settings
   | SanityImageCrop
   | SanityImageHotspot
@@ -508,6 +615,10 @@ export type AllSanitySchemaTypes =
   | Post
   | Person
   | Slug
+  | ContactPage
+  | BlogsPage
+  | ProjectsPage
+  | Home
   | SanityAssistInstructionTask
   | SanityAssistTaskStatus
   | SanityAssistSchemaTypeAnnotations

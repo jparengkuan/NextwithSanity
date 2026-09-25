@@ -35,9 +35,11 @@ const homeLocation = {
 function resolveHref(documentType?: string, slug?: string): string | undefined {
   switch (documentType) {
     case 'post':
-      return slug ? `/posts/${slug}` : undefined
+      return slug ? `/blogs/${slug}` : undefined
     case 'page':
       return slug ? `/${slug}` : undefined
+    case 'project':
+      return '/projects'
     default:
       console.warn('Invalid document type:', documentType)
       return undefined
@@ -66,19 +68,51 @@ export default defineConfig({
         mainDocuments: defineDocuments([
           {
             route: '/',
-            filter: `_type == "settings" && _id == "siteSettings"`,
+            filter: `_type == "home" && _id == "home"`,
+          },
+          {
+            route: '/projects',
+            filter: `_type == "projectsPage" && _id == "projectsPage"`,
+          },
+          {
+            route: '/blogs',
+            filter: `_type == "blogsPage" && _id == "blogsPage"`,
+          },
+          {
+            route: '/contact',
+            filter: `_type == "contactPage" && _id == "contactPage"`,
           },
           {
             route: '/:slug',
             filter: `_type == "page" && slug.current == $slug || _id == $slug`,
           },
           {
-            route: '/posts/:slug',
+            route: '/blogs/:slug',
             filter: `_type == "post" && slug.current == $slug || _id == $slug`,
           },
         ]),
         // Locations Resolver API allows you to define where data is being used in your application. https://www.sanity.io/docs/visual-editing/presentation-resolver-api#8d8bca7bfcd7
         locations: {
+          home: defineLocations({
+            locations: [homeLocation],
+            message: 'This document is the homepage',
+            tone: 'positive',
+          }),
+          projectsPage: defineLocations({
+            locations: [{title: 'Projects', href: '/projects'}],
+          }),
+          contactPage: defineLocations({
+            locations: [{title: 'Contact', href: '/contact'}],
+          }),
+          blogsPage: defineLocations({
+            locations: [{title: 'Blogs', href: '/blogs'}],
+          }),
+          project: defineLocations({
+            select: {title: 'title'},
+            resolve: (doc) => ({
+              locations: [{title: 'Projects', href: '/projects'}],
+            }),
+          }),
           settings: defineLocations({
             locations: [homeLocation],
             message: 'This document is used on all pages',
@@ -110,10 +144,11 @@ export default defineConfig({
                   href: resolveHref('post', doc?.slug)!,
                 },
                 {
-                  title: 'Home',
-                  href: '/',
+                  title: 'Blogs',
+                  href: '/blogs',
                 } satisfies DocumentLocation,
-              ].filter(Boolean) as DocumentLocation[],
+                // External articles have no slug, so no page of their own
+              ].filter((location) => location.href) as DocumentLocation[],
             }),
           }),
         },

@@ -44,7 +44,7 @@ export function linkResolver(link: Link | DereferencedLink | undefined) {
       }
     case 'post':
       if (link?.post && typeof link.post === 'string') {
-        return `/posts/${link.post}`
+        return `/blogs/${link.post}`
       }
     default:
       return null

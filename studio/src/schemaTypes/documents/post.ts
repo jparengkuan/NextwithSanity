@@ -10,7 +10,7 @@ import type {Post} from '../../../sanity.types'
 
 export const post = defineType({
   name: 'post',
-  title: 'Post',
+  title: 'Blog Post',
   icon: DocumentTextIcon,
   type: 'document',
   fields: [
@@ -24,13 +24,48 @@ export const post = defineType({
       name: 'slug',
       title: 'Slug',
       type: 'slug',
-      description: 'A slug is required for the post to show up in the preview',
+      description: 'Used in the URL: /blogs/<slug>. Not needed for external articles.',
       options: {
         source: 'title',
         maxLength: 96,
         isUnique: (value, context) => context.defaultIsUnique(value, context),
       },
-      validation: (rule) => rule.required(),
+      validation: (rule) =>
+        rule.custom((value, context) => {
+          const document = context.document as {externalUrl?: string} | undefined
+          return value?.current || document?.externalUrl
+            ? true
+            : 'Required unless External URL is set'
+        }),
+    }),
+    defineField({
+      name: 'externalUrl',
+      title: 'External URL',
+      description:
+        'Set this to list an article hosted elsewhere. The blog list links straight to it instead of a page on this site.',
+      type: 'url',
+    }),
+    defineField({
+      name: 'externalAuthor',
+      title: 'External author',
+      description: 'Shown as "By <author>" for external articles.',
+      type: 'string',
+      hidden: ({document}) => !document?.externalUrl,
+    }),
+    defineField({
+      name: 'externalSite',
+      title: 'External site',
+      description: 'Shown after the author, e.g. "example.com".',
+      type: 'string',
+      hidden: ({document}) => !document?.externalUrl,
+    }),
+    defineField({
+      name: 'tags',
+      title: 'Tags',
+      description: 'Shown in coral under the summary, e.g. "Mine", "Recommended".',
+      type: 'array',
+      of: [{type: 'string'}],
+      options: {layout: 'tags'},
     }),
     defineField({
       name: 'content',
@@ -40,6 +75,7 @@ export const post = defineType({
     defineField({
       name: 'excerpt',
       title: 'Excerpt',
+      description: 'Short summary shown in the blog list and under the article title.',
       type: 'text',
     }),
     defineField({

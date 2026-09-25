@@ -16,16 +16,8 @@ export const settings = defineType({
   icon: CogIcon,
   fields: [
     defineField({
-      name: 'title',
-      description: 'This field is the title of your blog.',
-      title: 'Title',
-      type: 'string',
-      initialValue: demo.title,
-      validation: (rule) => rule.required(),
-    }),
-    defineField({
       name: 'description',
-      description: 'Used on the Homepage',
+      description: 'Used for the site meta description.',
       title: 'Description',
       type: 'array',
       initialValue: demo.description,
@@ -114,6 +106,21 @@ export const settings = defineType({
           },
         }),
       ],
+    }),
+    defineField({
+      name: 'contactEmail',
+      title: 'Contact form: deliver to',
+      description:
+        'Messages from the contact page are sent to this address. Note: the dataset is public, so this value can be read through the Sanity API.',
+      type: 'string',
+      validation: (rule) => rule.email(),
+    }),
+    defineField({
+      name: 'resume',
+      title: 'Resume',
+      description: 'PDF opened by the "Resume" link in the header. Leave empty to hide the link.',
+      type: 'file',
+      options: {accept: 'application/pdf'},
     }),
     defineField({
       name: 'ogImage',

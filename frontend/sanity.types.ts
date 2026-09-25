@@ -127,13 +127,39 @@ export type Button = {
   link?: Link
 }
 
+export type Project = {
+  _id: string
+  _type: 'project'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  title: string
+  date: string
+  status?: string
+  summary?: string
+  details?: Array<string>
+  tags?: Array<string>
+  links?: Array<{
+    label: string
+    url: string
+    _type: 'projectLink'
+    _key: string
+  }>
+}
+
+export type SanityFileAssetReference = {
+  _ref: string
+  _type: 'reference'
+  _weak?: boolean
+  [internalGroqTypeReferenceTo]?: 'sanity.fileAsset'
+}
+
 export type Settings = {
   _id: string
   _type: 'settings'
   _createdAt: string
   _updatedAt: string
   _rev: string
-  title: string
   description?: Array<{
     children?: Array<{
       marks?: Array<string>
@@ -156,6 +182,12 @@ export type Settings = {
     _type: 'block'
     _key: string
   }>
+  contactEmail?: string
+  resume?: {
+    asset?: SanityFileAssetReference
+    media?: unknown
+    _type: 'file'
+  }
   ogImage?: {
     asset?: SanityImageAssetReference
     media?: unknown
@@ -217,7 +249,11 @@ export type Post = {
   _updatedAt: string
   _rev: string
   title: string
-  slug: Slug
+  slug?: Slug
+  externalUrl?: string
+  externalAuthor?: string
+  externalSite?: string
+  tags?: Array<string>
   content?: BlockContent
   excerpt?: string
   coverImage?: {
@@ -254,6 +290,75 @@ export type Slug = {
   _type: 'slug'
   current: string
   source?: string
+}
+
+export type ContactPage = {
+  _id: string
+  _type: 'contactPage'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  eyebrow?: string
+  heading: string
+  intro?: string
+  successMessage?: string
+}
+
+export type BlogsPage = {
+  _id: string
+  _type: 'blogsPage'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  eyebrow?: string
+  heading: string
+  intro?: string
+}
+
+export type ProjectsPage = {
+  _id: string
+  _type: 'projectsPage'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  eyebrow?: string
+  heading: string
+  intro?: string
+}
+
+export type Home = {
+  _id: string
+  _type: 'home'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  name: string
+  handle?: string
+  tagline?: string
+  bio?: Array<{
+    children?: Array<{
+      marks?: Array<string>
+      text?: string
+      _type: 'span'
+      _key: string
+    }>
+    style?: 'normal'
+    listItem?: never
+    markDefs?: Array<
+      {
+        _key: string
+      } & Link
+    >
+    level?: number
+    _type: 'block'
+    _key: string
+  }>
+  socials?: Array<{
+    label: string
+    url: string
+    _type: 'social'
+    _key: string
+  }>
 }
 
 export type SanityAssistInstructionTask = {
@@ -500,6 +605,8 @@ export type AllSanitySchemaTypes =
   | BlockContentTextOnly
   | BlockContent
   | Button
+  | Project
+  | SanityFileAssetReference
   | Settings
   | SanityImageCrop
   | SanityImageHotspot
@@ -508,6 +615,10 @@ export type AllSanitySchemaTypes =
   | Post
   | Person
   | Slug
+  | ContactPage
+  | BlogsPage
+  | ProjectsPage
+  | Home
   | SanityAssistInstructionTask
   | SanityAssistTaskStatus
   | SanityAssistSchemaTypeAnnotations
@@ -539,7 +650,6 @@ export type SettingsQueryResult = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  title: string
   description?: Array<{
     children?: Array<{
       marks?: Array<string>
@@ -562,6 +672,12 @@ export type SettingsQueryResult = {
     _type: 'block'
     _key: string
   }>
+  contactEmail?: string
+  resume?: {
+    asset?: SanityFileAssetReference
+    media?: unknown
+    _type: 'file'
+  }
   ogImage?: {
     asset?: SanityImageAssetReference
     media?: unknown
@@ -572,6 +688,188 @@ export type SettingsQueryResult = {
     _type: 'image'
   }
 } | null
+
+// Source: sanity/lib/queries.ts
+// Variable: contactEmailQuery
+// Query: *[_type == "settings"][0].contactEmail
+export type ContactEmailQueryResult = string | null
+
+// Source: sanity/lib/queries.ts
+// Variable: resumeQuery
+// Query: *[_type == "settings"][0].resume.asset->url
+export type ResumeQueryResult = string | null
+
+// Source: sanity/lib/queries.ts
+// Variable: homeQuery
+// Query: *[_type == "home" && _id == "home"][0]{    ...,    bio[]{      ...,      markDefs[]{        ...,        _type == "link" => {          "page": page->slug.current,          "post": post->slug.current        }      }    }  }
+export type HomeQueryResult = {
+  _id: 'home'
+  _type: 'home'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  name: string
+  handle?: string
+  tagline?: string
+  bio: Array<{
+    children?: Array<{
+      marks?: Array<string>
+      text?: string
+      _type: 'span'
+      _key: string
+    }>
+    style?: 'normal'
+    listItem?: never
+    markDefs: Array<{
+      _key: string
+      _type: 'link'
+      linkType?: 'href' | 'page' | 'post'
+      href?: string
+      page: string | null
+      post: string | null
+      openInNewTab?: boolean
+    }> | null
+    level?: number
+    _type: 'block'
+    _key: string
+  }> | null
+  socials?: Array<{
+    label: string
+    url: string
+    _type: 'social'
+    _key: string
+  }>
+} | null
+
+// Source: sanity/lib/queries.ts
+// Variable: projectsPageQuery
+// Query: *[_type == "projectsPage" && _id == "projectsPage"][0]{_id, eyebrow, heading, intro}
+export type ProjectsPageQueryResult = {
+  _id: 'projectsPage'
+  eyebrow: string | null
+  heading: string
+  intro: string | null
+} | null
+
+// Source: sanity/lib/queries.ts
+// Variable: contactPageQuery
+// Query: *[_type == "contactPage" && _id == "contactPage"][0]{_id, eyebrow, heading, intro, successMessage}
+export type ContactPageQueryResult = {
+  _id: 'contactPage'
+  eyebrow: string | null
+  heading: string
+  intro: string | null
+  successMessage: string | null
+} | null
+
+// Source: sanity/lib/queries.ts
+// Variable: blogsPageQuery
+// Query: *[_type == "blogsPage" && _id == "blogsPage"][0]{_id, eyebrow, heading, intro}
+export type BlogsPageQueryResult = {
+  _id: 'blogsPage'
+  eyebrow: string | null
+  heading: string
+  intro: string | null
+} | null
+
+// Source: sanity/lib/queries.ts
+// Variable: blogListQuery
+// Query: *[_type == "post" && (defined(slug.current) || defined(externalUrl))] | order(date desc, _updatedAt desc) {    _id,    "title": coalesce(title, "Untitled"),    "slug": slug.current,    externalUrl,    externalAuthor,    externalSite,    excerpt,    tags,    "date": coalesce(date, _updatedAt),    "author": author->{firstName, lastName}  }
+export type BlogListQueryResult = Array<{
+  _id: string
+  title: string
+  slug: string | null
+  externalUrl: string | null
+  externalAuthor: string | null
+  externalSite: string | null
+  excerpt: string | null
+  tags: Array<string> | null
+  date: string
+  author: {
+    firstName: string
+    lastName: string
+  } | null
+}>
+
+// Source: sanity/lib/queries.ts
+// Variable: blogPostQuery
+// Query: *[_type == "post" && slug.current == $slug && !defined(externalUrl)][0]{    _id,    "title": coalesce(title, "Untitled"),    excerpt,    coverImage,    "date": coalesce(date, _updatedAt),    "author": author->{firstName, lastName},    content[]{      ...,      markDefs[]{        ...,        _type == "link" => {          "page": page->slug.current,          "post": post->slug.current        }      }    }  }
+export type BlogPostQueryResult = {
+  _id: string
+  title: string
+  excerpt: string | null
+  coverImage: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    _type: 'image'
+  } | null
+  date: string
+  author: {
+    firstName: string
+    lastName: string
+  } | null
+  content: Array<
+    | {
+        children?: Array<{
+          marks?: Array<string>
+          text?: string
+          _type: 'span'
+          _key: string
+        }>
+        style?: 'blockquote' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'normal'
+        listItem?: 'bullet' | 'number'
+        markDefs: Array<{
+          linkType?: 'href' | 'page' | 'post'
+          href?: string
+          page: string | null
+          post: string | null
+          openInNewTab?: boolean
+          _type: 'link'
+          _key: string
+        }> | null
+        level?: number
+        _type: 'block'
+        _key: string
+      }
+    | {
+        asset?: SanityImageAssetReference
+        media?: unknown
+        hotspot?: SanityImageHotspot
+        crop?: SanityImageCrop
+        _type: 'image'
+        _key: string
+        markDefs: null
+      }
+  > | null
+} | null
+
+// Source: sanity/lib/queries.ts
+// Variable: blogSlugsQuery
+// Query: *[_type == "post" && defined(slug.current) && !defined(externalUrl)]{"slug": slug.current}
+export type BlogSlugsQueryResult = Array<{
+  slug: string
+}>
+
+// Source: sanity/lib/queries.ts
+// Variable: projectsQuery
+// Query: *[_type == "project" && defined(title)] | order(date desc, _createdAt desc) {    _id,    title,    status,    summary,    details,    tags,    links  }
+export type ProjectsQueryResult = Array<{
+  _id: string
+  title: string
+  status: string | null
+  summary: string | null
+  details: Array<string> | null
+  tags: Array<string> | null
+  links: Array<{
+    label: string
+    url: string
+    _type: 'projectLink'
+    _key: string
+  }> | null
+}>
 
 // Source: sanity/lib/queries.ts
 // Variable: getPageQuery
@@ -664,147 +962,11 @@ export type SitemapDataResult = Array<
       _updatedAt: string
     }
   | {
-      slug: string
+      slug: string | null
       _type: 'post'
       _updatedAt: string
     }
 >
-
-// Source: sanity/lib/queries.ts
-// Variable: allPostsQuery
-// Query: *[_type == "post" && defined(slug.current)] | order(date desc, _updatedAt desc) {      _id,  "status": select(_originalId in path("drafts.**") => "draft", "published"),  "title": coalesce(title, "Untitled"),  "slug": slug.current,  excerpt,  coverImage,  "date": coalesce(date, _updatedAt),  "author": author->{firstName, lastName, picture},  }
-export type AllPostsQueryResult = Array<{
-  _id: string
-  status: 'draft' | 'published'
-  title: string
-  slug: string
-  excerpt: string | null
-  coverImage: {
-    asset?: SanityImageAssetReference
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    alt?: string
-    _type: 'image'
-  } | null
-  date: string
-  author: {
-    firstName: string
-    lastName: string
-    picture: {
-      asset?: SanityImageAssetReference
-      media?: unknown
-      hotspot?: SanityImageHotspot
-      crop?: SanityImageCrop
-      alt?: string
-      _type: 'image'
-    }
-  } | null
-}>
-
-// Source: sanity/lib/queries.ts
-// Variable: morePostsQuery
-// Query: *[_type == "post" && _id != $skip && defined(slug.current)] | order(date desc, _updatedAt desc) [0...$limit] {      _id,  "status": select(_originalId in path("drafts.**") => "draft", "published"),  "title": coalesce(title, "Untitled"),  "slug": slug.current,  excerpt,  coverImage,  "date": coalesce(date, _updatedAt),  "author": author->{firstName, lastName, picture},  }
-export type MorePostsQueryResult = Array<{
-  _id: string
-  status: 'draft' | 'published'
-  title: string
-  slug: string
-  excerpt: string | null
-  coverImage: {
-    asset?: SanityImageAssetReference
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    alt?: string
-    _type: 'image'
-  } | null
-  date: string
-  author: {
-    firstName: string
-    lastName: string
-    picture: {
-      asset?: SanityImageAssetReference
-      media?: unknown
-      hotspot?: SanityImageHotspot
-      crop?: SanityImageCrop
-      alt?: string
-      _type: 'image'
-    }
-  } | null
-}>
-
-// Source: sanity/lib/queries.ts
-// Variable: postQuery
-// Query: *[_type == "post" && slug.current == $slug] [0] {    content[]{    ...,    markDefs[]{      ...,        _type == "link" => {    "page": page->slug.current,    "post": post->slug.current  }    }  },      _id,  "status": select(_originalId in path("drafts.**") => "draft", "published"),  "title": coalesce(title, "Untitled"),  "slug": slug.current,  excerpt,  coverImage,  "date": coalesce(date, _updatedAt),  "author": author->{firstName, lastName, picture},  }
-export type PostQueryResult = {
-  content: Array<
-    | {
-        children?: Array<{
-          marks?: Array<string>
-          text?: string
-          _type: 'span'
-          _key: string
-        }>
-        style?: 'blockquote' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'normal'
-        listItem?: 'bullet' | 'number'
-        markDefs: Array<{
-          linkType?: 'href' | 'page' | 'post'
-          href?: string
-          page: string | null
-          post: string | null
-          openInNewTab?: boolean
-          _type: 'link'
-          _key: string
-        }> | null
-        level?: number
-        _type: 'block'
-        _key: string
-      }
-    | {
-        asset?: SanityImageAssetReference
-        media?: unknown
-        hotspot?: SanityImageHotspot
-        crop?: SanityImageCrop
-        _type: 'image'
-        _key: string
-        markDefs: null
-      }
-  > | null
-  _id: string
-  status: 'draft' | 'published'
-  title: string
-  slug: string
-  excerpt: string | null
-  coverImage: {
-    asset?: SanityImageAssetReference
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    alt?: string
-    _type: 'image'
-  } | null
-  date: string
-  author: {
-    firstName: string
-    lastName: string
-    picture: {
-      asset?: SanityImageAssetReference
-      media?: unknown
-      hotspot?: SanityImageHotspot
-      crop?: SanityImageCrop
-      alt?: string
-      _type: 'image'
-    }
-  } | null
-} | null
-
-// Source: sanity/lib/queries.ts
-// Variable: postPagesSlugs
-// Query: *[_type == "post" && defined(slug.current)]  {"slug": slug.current}
-export type PostPagesSlugsResult = Array<{
-  slug: string
-}>
 
 // Source: sanity/lib/queries.ts
 // Variable: pagesSlugs
@@ -818,12 +980,18 @@ import '@sanity/client'
 declare module '@sanity/client' {
   interface SanityQueries {
     '*[_type == "settings"][0]': SettingsQueryResult
+    '\n  *[_type == "settings"][0].contactEmail\n': ContactEmailQueryResult
+    '\n  *[_type == "settings"][0].resume.asset->url\n': ResumeQueryResult
+    '\n  *[_type == "home" && _id == "home"][0]{\n    ...,\n    bio[]{\n      ...,\n      markDefs[]{\n        ...,\n        _type == "link" => {\n          "page": page->slug.current,\n          "post": post->slug.current\n        }\n      }\n    }\n  }\n': HomeQueryResult
+    '\n  *[_type == "projectsPage" && _id == "projectsPage"][0]{_id, eyebrow, heading, intro}\n': ProjectsPageQueryResult
+    '\n  *[_type == "contactPage" && _id == "contactPage"][0]{_id, eyebrow, heading, intro, successMessage}\n': ContactPageQueryResult
+    '\n  *[_type == "blogsPage" && _id == "blogsPage"][0]{_id, eyebrow, heading, intro}\n': BlogsPageQueryResult
+    '\n  *[_type == "post" && (defined(slug.current) || defined(externalUrl))] | order(date desc, _updatedAt desc) {\n    _id,\n    "title": coalesce(title, "Untitled"),\n    "slug": slug.current,\n    externalUrl,\n    externalAuthor,\n    externalSite,\n    excerpt,\n    tags,\n    "date": coalesce(date, _updatedAt),\n    "author": author->{firstName, lastName}\n  }\n': BlogListQueryResult
+    '\n  *[_type == "post" && slug.current == $slug && !defined(externalUrl)][0]{\n    _id,\n    "title": coalesce(title, "Untitled"),\n    excerpt,\n    coverImage,\n    "date": coalesce(date, _updatedAt),\n    "author": author->{firstName, lastName},\n    content[]{\n      ...,\n      markDefs[]{\n        ...,\n        _type == "link" => {\n          "page": page->slug.current,\n          "post": post->slug.current\n        }\n      }\n    }\n  }\n': BlogPostQueryResult
+    '\n  *[_type == "post" && defined(slug.current) && !defined(externalUrl)]{"slug": slug.current}\n': BlogSlugsQueryResult
+    '\n  *[_type == "project" && defined(title)] | order(date desc, _createdAt desc) {\n    _id,\n    title,\n    status,\n    summary,\n    details,\n    tags,\n    links\n  }\n': ProjectsQueryResult
     '\n  *[_type == \'page\' && slug.current == $slug][0]{\n    _id,\n    _type,\n    name,\n    slug,\n    heading,\n    subheading,\n    "pageBuilder": pageBuilder[]{\n      ...,\n      _type == "callToAction" => {\n        ...,\n        button {\n          ...,\n          \n  link {\n      ...,\n      \n  _type == "link" => {\n    "page": page->slug.current,\n    "post": post->slug.current\n  }\n\n      }\n\n        }\n      },\n      _type == "infoSection" => {\n        content[]{\n          ...,\n          markDefs[]{\n            ...,\n            \n  _type == "link" => {\n    "page": page->slug.current,\n    "post": post->slug.current\n  }\n\n          }\n        }\n      },\n    },\n  }\n': GetPageQueryResult
     '\n  *[_type == "page" || _type == "post" && defined(slug.current)] | order(_type asc) {\n    "slug": slug.current,\n    _type,\n    _updatedAt,\n  }\n': SitemapDataResult
-    '\n  *[_type == "post" && defined(slug.current)] | order(date desc, _updatedAt desc) {\n    \n  _id,\n  "status": select(_originalId in path("drafts.**") => "draft", "published"),\n  "title": coalesce(title, "Untitled"),\n  "slug": slug.current,\n  excerpt,\n  coverImage,\n  "date": coalesce(date, _updatedAt),\n  "author": author->{firstName, lastName, picture},\n\n  }\n': AllPostsQueryResult
-    '\n  *[_type == "post" && _id != $skip && defined(slug.current)] | order(date desc, _updatedAt desc) [0...$limit] {\n    \n  _id,\n  "status": select(_originalId in path("drafts.**") => "draft", "published"),\n  "title": coalesce(title, "Untitled"),\n  "slug": slug.current,\n  excerpt,\n  coverImage,\n  "date": coalesce(date, _updatedAt),\n  "author": author->{firstName, lastName, picture},\n\n  }\n': MorePostsQueryResult
-    '\n  *[_type == "post" && slug.current == $slug] [0] {\n    content[]{\n    ...,\n    markDefs[]{\n      ...,\n      \n  _type == "link" => {\n    "page": page->slug.current,\n    "post": post->slug.current\n  }\n\n    }\n  },\n    \n  _id,\n  "status": select(_originalId in path("drafts.**") => "draft", "published"),\n  "title": coalesce(title, "Untitled"),\n  "slug": slug.current,\n  excerpt,\n  coverImage,\n  "date": coalesce(date, _updatedAt),\n  "author": author->{firstName, lastName, picture},\n\n  }\n': PostQueryResult
-    '\n  *[_type == "post" && defined(slug.current)]\n  {"slug": slug.current}\n': PostPagesSlugsResult
     '\n  *[_type == "page" && defined(slug.current)]\n  {"slug": slug.current}\n': PagesSlugsResult
   }
 }
