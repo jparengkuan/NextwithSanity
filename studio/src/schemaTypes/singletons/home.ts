@@ -1,6 +1,8 @@
 import {HomeIcon} from '@sanity/icons'
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
+import {labeledLinkMember} from '../fields'
+
 /**
  * Home schema Singleton. Holds the content shown on the homepage (/).
  */
@@ -52,27 +54,7 @@ export const home = defineType({
       title: 'Socials',
       description: 'Links listed under "Socials".',
       type: 'array',
-      of: [
-        defineArrayMember({
-          type: 'object',
-          name: 'social',
-          fields: [
-            defineField({
-              name: 'label',
-              title: 'Label',
-              type: 'string',
-              validation: (rule) => rule.required(),
-            }),
-            defineField({
-              name: 'url',
-              title: 'URL',
-              type: 'url',
-              validation: (rule) => rule.required(),
-            }),
-          ],
-          preview: {select: {title: 'label', subtitle: 'url'}},
-        }),
-      ],
+      of: [labeledLinkMember('social')],
     }),
   ],
   preview: {

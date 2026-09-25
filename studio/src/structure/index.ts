@@ -1,4 +1,5 @@
 import {CogIcon, DocumentsIcon, EnvelopeIcon, HomeIcon, ProjectsIcon} from '@sanity/icons'
+import type {ComponentType} from 'react'
 import type {StructureBuilder, StructureResolver} from 'sanity/structure'
 import pluralize from 'pluralize-esm'
 
@@ -8,22 +9,41 @@ import pluralize from 'pluralize-esm'
  * Learn more: https://www.sanity.io/docs/structure-builder-introduction
  */
 
-// Listed under "Pages" (or as Site Settings) instead of as their own document types
-const DISABLED_TYPES = [
-  'home',
-  'projectsPage',
-  'blogsPage',
-  'contactPage',
+type Singleton = {type: string; id: string; title: string; icon: ComponentType}
+
+// Fixed pages with exactly one document each, shown under "Pages"
+const PAGE_SINGLETONS: Singleton[] = [
+  {type: 'home', id: 'home', title: 'Home', icon: HomeIcon},
+  {type: 'projectsPage', id: 'projectsPage', title: 'Projects', icon: ProjectsIcon},
+  {type: 'blogsPage', id: 'blogsPage', title: 'Blogs', icon: DocumentsIcon},
+  {type: 'contactPage', id: 'contactPage', title: 'Contact', icon: EnvelopeIcon},
+]
+
+const SETTINGS: Singleton = {
+  type: 'settings',
+  id: 'siteSettings',
+  title: 'Site Settings',
+  icon: CogIcon,
+}
+
+// Types placed explicitly below, hidden from the automatic document type list
+const HIDDEN_TYPES = [
+  ...PAGE_SINGLETONS.map((singleton) => singleton.type),
+  SETTINGS.type,
   'page',
-  'settings',
   'assist.instruction.context',
 ]
+
+// Opens the one document directly instead of a list. Learn more about Singletons: https://www.sanity.io/docs/create-a-link-to-a-single-edit-page-in-your-main-document-type-list
+function singletonItem(S: StructureBuilder, {type, id, title, icon}: Singleton) {
+  return S.listItem().title(title).icon(icon).child(S.document().schemaType(type).documentId(id))
+}
 
 export const structure: StructureResolver = (S: StructureBuilder) =>
   S.list()
     .title('Website Content')
     .items([
-      // Fixed pages (singletons) and the free-form page builder pages, grouped together
+      // Fixed pages and the free-form page builder pages, grouped together
       S.listItem()
         .title('Pages')
         .icon(DocumentsIcon)
@@ -31,38 +51,17 @@ export const structure: StructureResolver = (S: StructureBuilder) =>
           S.list()
             .title('Pages')
             .items([
-              S.listItem()
-                .title('Home')
-                .child(S.document().schemaType('home').documentId('home'))
-                .icon(HomeIcon),
-              S.listItem()
-                .title('Projects')
-                .child(S.document().schemaType('projectsPage').documentId('projectsPage'))
-                .icon(ProjectsIcon),
-              S.listItem()
-                .title('Blogs')
-                .child(S.document().schemaType('blogsPage').documentId('blogsPage'))
-                .icon(DocumentsIcon),
-              S.listItem()
-                .title('Contact')
-                .child(S.document().schemaType('contactPage').documentId('contactPage'))
-                .icon(EnvelopeIcon),
+              ...PAGE_SINGLETONS.map((singleton) => singletonItem(S, singleton)),
               S.divider(),
               S.documentTypeListItem('page').title('Other pages'),
             ]),
         ),
       ...S.documentTypeListItems()
-        // Remove types listed above and "assist.instruction.context" from the list of content types
-        .filter((listItem: any) => !DISABLED_TYPES.includes(listItem.getId()))
-        // Pluralize the title of each document type.  This is not required but just an option to consider.
+        .filter((listItem) => !HIDDEN_TYPES.includes(listItem.getId() ?? ''))
         .map((listItem) => {
           // Posts are shown on /blogs, so label them that way
           if (listItem.getId() === 'post') return listItem.title('Blogs')
           return listItem.title(pluralize(listItem.getTitle() as string))
         }),
-      // Settings Singleton in order to view/edit the one particular document for Settings.  Learn more about Singletons: https://www.sanity.io/docs/create-a-link-to-a-single-edit-page-in-your-main-document-type-list
-      S.listItem()
-        .title('Site Settings')
-        .child(S.document().schemaType('settings').documentId('siteSettings'))
-        .icon(CogIcon),
+      singletonItem(S, SETTINGS),
     ])

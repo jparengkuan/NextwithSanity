@@ -1,108 +1,107 @@
-# Clean Next.js + Sanity app
+# Personal website
 
-This template includes a [Next.js](https://nextjs.org/) app with a [Sanity Studio](https://www.sanity.io/) – an open-source React application that connects to your Sanity project’s hosted dataset. The Studio is configured locally and can then be deployed for content collaboration.
+Portfolio and blog for Jim Parengkuan, built with [Next.js](https://nextjs.org/) and [Sanity](https://www.sanity.io/). The design is a dark, minimal portfolio: a home page with a short bio, a projects list, a blog, a contact form, and a resume link. All copy is edited in Sanity Studio.
 
-![Screenshot of Sanity Studio using Presentation Tool to do Visual Editing](/sanity-next-preview.png)
+| | URL |
+|---|---|
+| Website | https://jim-blog-wine.vercel.app |
+| Studio (Sanity hosted) | https://jim-blog.sanity.studio |
+| Studio (Vercel) | https://personalwebsite-six-bice.vercel.app |
 
-## Features
+## Stack
 
-- **Next.js 16 for Performance:** Leverage the power of Next.js 16 App Router for blazing-fast performance and SEO-friendly static sites.
-- **Real-time Visual Editing:** Edit content live with Sanity's [Presentation Tool](https://www.sanity.io/docs/presentation) and see updates in real time.
-- **Live Content:** The [Live Content API](https://www.sanity.io/live) allows you to deliver live, dynamic experiences to your users without the complexity and scalability challenges that typically come with building real-time functionality.
-- **Customizable Pages with Drag-and-Drop:** Create and manage pages using a page builder with dynamic components and [Drag-and-Drop Visual Editing](https://www.sanity.io/visual-editing-for-structured-content).
-- **Powerful Content Management:** Collaborate with team members in real-time, with fine-grained revision history.
-- **AI-powered Media Support:** Auto-generate alt text with [Sanity AI Assist](https://www.sanity.io/ai-assist).
-- **On-demand Publishing:** No waiting for rebuilds—new content is live instantly with Incremental Static Revalidation.
-- **Easy Media Management:** [Integrated Unsplash support](https://www.sanity.io/plugins/sanity-plugin-asset-source-unsplash) for seamless media handling.
+- **Next.js 16** (App Router, Server Components, Server Actions) in `frontend/`
+- **Sanity Studio** in `studio/`, with live preview through the Presentation tool
+- **DDEV** for local development: runs both apps as background daemons
+- **Vercel** for hosting; `main` deploys automatically
+- **Gmail SMTP** (via nodemailer) for the contact form, protected by a **reCAPTCHA Enterprise** checkbox
 
-## Demo
+## Running locally
 
-https://template-nextjs-clean.sanity.dev
-
-## Getting Started
-
-### Installing the template
-
-> **Already deployed with Vercel?** If you've already deployed using the **Sanity + Vercel Integration** or **one-click Vercel button**, please visit our [Vercel deployment instructions](vercel-installation-instructions.md) to set up your local environment and deploy Sanity Studio.
-
-#### 1. Initialize template with Sanity CLI
-
-Run the command in your Terminal to initialize this template on your local computer.
+Requires [DDEV](https://ddev.com/) and Docker Desktop.
 
 ```shell
-npm create sanity@latest -- --template sanity-io/sanity-template-nextjs-clean
+ddev start
 ```
 
-See the documentation if you are [having issues with the CLI](https://www.sanity.io/help/cli-errors).
+That starts both apps:
 
-#### 2. Run Studio and Next.js app locally
+- Website: https://website.ddev.site
+- Studio: https://website.ddev.site:3333
+- Mailpit (catches mail when SMTP isn't configured): https://website.ddev.site:8026
 
-Navigate to the template directory using `cd <your app name>`, and start the development servers by running the following command
+After changing `.env.local` or `.ddev/config*.yaml`, run `ddev restart`.
+
+Without DDEV, `npm install` and `npm run dev` from the repo root start the site on http://localhost:3000 and the Studio on http://localhost:3333.
+
+## Environment variables
+
+Copy `frontend/.env.example` to `frontend/.env.local` and `studio/.env.example` to `studio/.env`. Both are git-ignored. Set the same frontend values in Vercel for production, then redeploy: Vercel only reads them at build time.
+
+| Variable | Used for |
+|---|---|
+| `NEXT_PUBLIC_SANITY_PROJECT_ID`, `NEXT_PUBLIC_SANITY_DATASET`, `NEXT_PUBLIC_SANITY_API_VERSION` | Sanity connection |
+| `NEXT_PUBLIC_SANITY_STUDIO_URL` | Links from the site to the Studio (visual editing) |
+| `SANITY_API_READ_TOKEN` | Drafts and live preview |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | Contact form mail. For Gmail: `smtp.gmail.com`, `465`, your address, and a [Google app password](https://myaccount.google.com/apppasswords) |
+| `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` | reCAPTCHA Enterprise key of the **checkbox** type |
+| `RECAPTCHA_PROJECT_ID`, `RECAPTCHA_API_KEY` | Server-side check of the checkbox (Google Cloud project ID and an API key restricted to the reCAPTCHA Enterprise API) |
+
+The reCAPTCHA check is skipped when its variables are missing, so local development works without Google credentials. The reCAPTCHA key's allowed domains must include each domain the site runs on (`website.ddev.site`, the Vercel domain).
+
+## Editing content
+
+Everything is in the Studio sidebar:
+
+- **Pages**
+  - **Home**: name, handle (shown on hover), tagline, bio (with links), socials
+  - **Projects**, **Blogs**, **Contact**: the eyebrow, heading and intro at the top of each page; Contact also has the message shown after sending
+  - **Other pages**: the starter's page-builder pages, served at `/<slug>`
+- **Blogs**: blog posts. Set **External URL** to list an article hosted elsewhere; it then links out instead of getting a page here.
+- **Projects**: shown on `/projects`, newest first by date
+- **People**: post authors
+- **Site Settings**: description and share image for SEO, the **Resume** PDF (adds a "Resume" link to the nav), and the contact form's **deliver to** address
+
+Publish changes for them to appear on the live site. The browser tab title comes from the Name on Home.
+
+## Project structure
+
+```
+frontend/
+  app/
+    (portfolio)/            Dark portfolio pages sharing one layout and portfolio.css
+      page.tsx              Home
+      projects/             Projects list (ProjectRow)
+      blogs/                Blog list (BlogRow) and articles (blogs/[slug])
+      contact/              Form, server action, validation, SMTP mailer, reCAPTCHA check
+    (site)/                 Starter page-builder pages at /<slug>
+    components/portfolio/   Shared pieces: nav, mobile menu, links, socials, rich text, page intro
+  sanity/lib/queries.ts     GROQ queries (types generated into sanity.types.ts)
+studio/
+  src/schemaTypes/          Content model; fields.ts holds shared field helpers
+  src/structure/index.ts    Sidebar layout
+.ddev/config.website.yaml   Runs both dev servers inside DDEV
+```
+
+After changing the Studio schema or a query, regenerate the types:
 
 ```shell
-npm run dev
+npm run sanity:typegen --workspace=frontend
 ```
 
-#### 3. Open the app and sign in to the Studio
+## Deploying
 
-Open the Next.js app running locally in your browser on [http://localhost:3000](http://localhost:3000).
+- **Website:** push to `main`; Vercel builds and deploys it. Old `/posts/<slug>` URLs redirect to `/blogs/<slug>`.
+- **Studio on Vercel:** deploys from the same push.
+- **Studio on sanity.studio:** run `npx sanity deploy` in `studio/`.
 
-Open the Studio running locally in your browser on [http://localhost:3333](http://localhost:3333). You should now see a screen prompting you to log in to the Studio. Use the same service (Google, GitHub, or email) that you used when you logged in to the CLI.
+## Useful commands
 
-### Adding content with Sanity
+| Command | What it does |
+|---|---|
+| `npm run lint` | ESLint for the frontend |
+| `npm run type-check` | TypeScript checks for both workspaces |
+| `npm run format` | Prettier over the repo |
+| `npm run import-sample-data` | Imports the starter's sample content (replaces the dataset) |
 
-#### 1. Publish your first document
-
-The template comes pre-defined with a schema containing `Page`, `Post`, `Person`, and `Settings` document types.
-
-From the Studio, click "+ Create" and select the `Post` document type. Go ahead and create and publish the document.
-
-Your content should now appear in your Next.js app ([http://localhost:3000](http://localhost:3000)) as well as in the Studio on the "Presentation" Tab
-
-#### 2. Import Sample Data (optional)
-
-You may want to start with some sample content and we've got you covered. Run this command from the root of your project to import the provided dataset (sample-data.tar.gz) into your Sanity project. This step is optional but can be helpful for getting started quickly.
-
-```shell
-npm run import-sample-data
-```
-
-#### 3. Extending the Sanity schema
-
-The schema for the `Post` document type is defined in the `studio/src/schemaTypes/post.ts` file. You can [add more document types](https://www.sanity.io/docs/studio/schema-types) to the schema to suit your needs.
-
-### Deploying your application and inviting editors
-
-#### 1. Deploy Sanity Studio
-
-Your Next.js frontend (`/frontend`) and Sanity Studio (`/studio`) are still only running on your local computer. It's time to deploy and get it into the hands of other content editors.
-
-Back in your Studio directory (`/studio`), run the following command to deploy your Sanity Studio.
-
-```shell
-npx sanity deploy
-```
-
-#### 2. Deploy Next.js app to Vercel
-
-You have the freedom to deploy your Next.js app to your hosting provider of choice. With Vercel and GitHub being a popular choice, we'll cover the basics of that approach.
-
-1. Create a GitHub repository from this project. [Learn more](https://docs.github.com/en/migrations/importing-source-code/using-the-command-line-to-import-source-code/adding-locally-hosted-code-to-github).
-2. Create a new Vercel project and connect it to your Github repository.
-3. Set the `Root Directory` to your Next.js app.
-4. Configure your Environment Variables.
-
-#### 3. Invite a collaborator
-
-Now that you’ve deployed your Next.js application and Sanity Studio, you can optionally invite a collaborator to your Studio. Open up [Manage](https://www.sanity.io/manage), select your project and click "Invite project members"
-
-They will be able to access the deployed Studio, where you can collaborate together on creating content.
-
-## Resources
-
-- [Sanity documentation](https://www.sanity.io/docs)
-- [Next.js documentation](https://nextjs.org/docs)
-- [Join the Sanity Community](https://slack.sanity.io)
-- [Learn Sanity](https://www.sanity.io/learn)
-
-[vercel-deploy]: https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsanity-io%2Fsanity-template-nextjs-clean&project-name=nextjs-clean-website-sanity-template&repository-name=nextjs-clean-website-sanity-template&demo-title=Clean%20Next.js%20%2B%20Sanity%20app&demo-description=A%20clean%20Next.js%20plus%20Sanity%20starter%20with%20real-time%20visual%20editing%2C%20drag-and-drop%20page%20builder%2C%20AI%20media%20support%2C%20and%20live%20content%20updates.&demo-url=https%3A%2F%2Ftemplate-nextjs-clean.sanity.build%2F&demo-image=https%3A%2F%2Fraw.githubusercontent.com%2Fsanity-io%2Fsanity-template-nextjs-clean%2Frefs%2Fheads%2Fmain%2Fsanity-next-preview.png&products=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22sanity%22%2C%22productSlug%22%3A%22project%22%2C%22protocol%22%3A%22other%22%7D%5D&root-directory=frontend
+Built on the [Sanity + Next.js clean template](https://github.com/sanity-io/sanity-template-nextjs-clean).

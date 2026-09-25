@@ -4,88 +4,78 @@ import {client} from '@/sanity/lib/client'
 import {contactEmailQuery} from '@/sanity/lib/queries'
 import {isMailerConfigured, sendMail} from './mailer'
 import {verifyRecaptcha} from './recaptcha'
+import {
+  readContactValues,
+  validateContact,
+  type ContactValues,
+  type FieldErrors,
+} from './validation'
 
 export type ContactState = {
   status: 'idle' | 'success' | 'error'
   message?: string
-  fieldErrors?: Partial<Record<'name' | 'email' | 'message', string>>
+  fieldErrors?: FieldErrors
   // Echoed back so the form keeps its values after a failed submit
-  values?: {name: string; email: string; message: string}
+  values?: ContactValues
 }
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const failure = (message: string, values: ContactValues): ContactState => ({
+  status: 'error',
+  message,
+  values,
+})
+
+// "Deliver to" from Site Settings; falls back to the SMTP account itself
+async function getRecipient(fallback: string) {
+  const deliverTo = await client
+    .withConfig({useCdn: false, stega: false})
+    .fetch(contactEmailQuery)
+    .catch(() => null)
+  return deliverTo || fallback
+}
 
 /**
- * Emails the message to the "deliver to" address in Site Settings. It's sent from the SMTP
- * account itself (Gmail only sends as the logged-in address), which is also the fallback
- * recipient. SMTP is set up in ./mailer.ts.
+ * Validates the form, checks the reCAPTCHA tick, and emails the message. Mail is sent from the
+ * SMTP account (Gmail only sends as the logged-in address). SMTP is set up in ./mailer.ts.
  */
 export async function sendContactMessage(
   _prevState: ContactState,
   formData: FormData,
 ): Promise<ContactState> {
-  const values = {
-    name: String(formData.get('name') ?? '').trim(),
-    email: String(formData.get('email') ?? '').trim(),
-    message: String(formData.get('message') ?? '').trim(),
-  }
+  // Honeypot: real visitors never see or fill this field, so pretend it worked
+  if (formData.get('company')) return {status: 'success'}
 
-  // Honeypot: real visitors never see or fill this field
-  if (formData.get('company')) {
-    return {status: 'success'}
-  }
-
-  const fieldErrors: ContactState['fieldErrors'] = {}
-  if (!values.name) fieldErrors.name = 'Please enter your name.'
-  else if (values.name.length > 200) fieldErrors.name = 'That name is too long.'
-  if (!EMAIL_PATTERN.test(values.email)) fieldErrors.email = 'Please enter a valid email address.'
-  if (values.message.length < 10) fieldErrors.message = 'Please write at least a few words.'
-  else if (values.message.length > 5000)
-    fieldErrors.message = 'Please keep it under 5000 characters.'
-
+  const values = readContactValues(formData)
+  const fieldErrors = validateContact(values)
   if (Object.keys(fieldErrors).length > 0) {
     return {status: 'error', fieldErrors, values}
   }
 
-  const recaptchaToken = formData.get('recaptchaToken')
-  if (!(await verifyRecaptcha(typeof recaptchaToken === 'string' ? recaptchaToken : null))) {
-    return {
-      status: 'error',
-      message: 'We couldn’t verify you’re not a robot. Please tick the box and try again.',
+  const token = formData.get('recaptchaToken')
+  if (!(await verifyRecaptcha(typeof token === 'string' ? token : null))) {
+    return failure(
+      'We couldn’t verify you’re not a robot. Please tick the box and try again.',
       values,
-    }
+    )
   }
 
   if (!isMailerConfigured()) {
     console.error('Contact form: set SMTP_HOST, SMTP_USER and SMTP_PASS')
-    return {
-      status: 'error',
-      message: 'The contact form isn’t set up yet. Please try again later.',
-      values,
-    }
+    return failure('The contact form isn’t set up yet. Please try again later.', values)
   }
 
   const from = process.env.SMTP_USER!
-  const deliverTo = await client
-    .withConfig({useCdn: false, stega: false})
-    .fetch(contactEmailQuery)
-    .catch(() => null)
-
   try {
     await sendMail({
       from,
-      to: deliverTo || from,
+      to: await getRecipient(from),
       replyTo: {name: values.name, email: values.email},
       subject: `New message from ${values.name}`,
       text: `${values.message}\n\n— ${values.name} <${values.email}>`,
     })
   } catch (error) {
     console.error('Contact form: failed to send', error)
-    return {
-      status: 'error',
-      message: 'Something went wrong sending your message. Please try again.',
-      values,
-    }
+    return failure('Something went wrong sending your message. Please try again.', values)
   }
 
   return {status: 'success'}

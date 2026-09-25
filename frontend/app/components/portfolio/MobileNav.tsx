@@ -1,21 +1,22 @@
 'use client'
 
-import Link from 'next/link'
 import {usePathname} from 'next/navigation'
 import {useEffect, useRef} from 'react'
 
-import type {NavItem} from './NavLink'
+import {formatIndex} from './links'
+import NavLink, {type NavItem} from './NavLink'
 
 // Slide-in drawer built on the native popover API; shown below 48rem instead of the inline nav.
 export default function MobileNav({items}: {items: NavItem[]}) {
   const pathname = usePathname()
   const drawerRef = useRef<HTMLElement>(null)
-
-  // Client-side navigation doesn't reload the page, so close the drawer ourselves.
-  useEffect(() => {
+  const closeDrawer = () => {
     const drawer = drawerRef.current
     if (drawer?.matches(':popover-open')) drawer.hidePopover()
-  }, [pathname])
+  }
+
+  // Client-side navigation doesn't reload the page, so close the drawer ourselves.
+  useEffect(closeDrawer, [pathname])
 
   return (
     <>
@@ -49,39 +50,19 @@ export default function MobileNav({items}: {items: NavItem[]}) {
           </button>
         </div>
         <ul className="mobile-nav__links">
-          {items.map((item, i) => {
-            const isCurrent = pathname === item.href || pathname.startsWith(`${item.href}/`)
-            const content = (
-              <>
-                <span aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+          {items.map((item, i) => (
+            <li key={item.href} style={{'--nav-index': i} as React.CSSProperties}>
+              {/* External items open a new tab without navigating here, so close explicitly */}
+              <NavLink
+                item={item}
+                className="mobile-nav__link"
+                onClick={item.external ? closeDrawer : undefined}
+              >
+                <span aria-hidden="true">{formatIndex(i + 1)}</span>
                 <span className="mobile-nav__label">{item.label}</span>
-              </>
-            )
-            return (
-              <li key={item.href} style={{'--nav-index': i} as React.CSSProperties}>
-                {item.external ? (
-                  <a
-                    href={item.href}
-                    className="mobile-nav__link"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`${item.label} (opens in a new tab)`}
-                    onClick={() => drawerRef.current?.hidePopover()}
-                  >
-                    {content}
-                  </a>
-                ) : (
-                  <Link
-                    href={item.href}
-                    className="mobile-nav__link"
-                    aria-current={isCurrent ? 'page' : undefined}
-                  >
-                    {content}
-                  </Link>
-                )}
-              </li>
-            )
-          })}
+              </NavLink>
+            </li>
+          ))}
         </ul>
       </nav>
     </>

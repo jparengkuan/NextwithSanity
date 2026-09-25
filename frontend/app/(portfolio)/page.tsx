@@ -1,12 +1,9 @@
-import Link from 'next/link'
-import {PortableText, type PortableTextComponents} from 'next-sanity'
-
+import NameSwap from '@/app/components/portfolio/NameSwap'
+import RichText from '@/app/components/portfolio/RichText'
+import SocialLinks from '@/app/components/portfolio/SocialLinks'
 import {homeQuery} from '@/sanity/lib/queries'
 import {sanityFetch} from '@/sanity/lib/live'
-import {dataAttr, linkResolver} from '@/sanity/lib/utils'
-import {DereferencedLink} from '@/sanity/lib/types'
-import ArrowIcon from '@/app/components/portfolio/ArrowIcon'
-import NameSwap from '@/app/components/portfolio/NameSwap'
+import {dataAttr} from '@/sanity/lib/utils'
 
 // Shown until the fields are filled in under Home in the Studio.
 const fallback = {
@@ -14,33 +11,10 @@ const fallback = {
   tagline: 'Software Engineer',
 }
 
-const bioComponents: PortableTextComponents = {
-  marks: {
-    link: ({children, value}) => {
-      const href = linkResolver(value as DereferencedLink)
-      if (!href) return <>{children}</>
-      const external = /^https?:\/\//.test(href)
-      return (
-        <Link
-          className="inline-link"
-          href={href}
-          target={external ? '_blank' : undefined}
-          rel={external ? 'noopener noreferrer' : undefined}
-        >
-          {children}
-          {external && <ArrowIcon />}
-        </Link>
-      )
-    },
-  },
-}
-
 export default async function Page() {
   const {data: home} = await sanityFetch({query: homeQuery})
 
   const name = home?.name || fallback.name
-  const handle = home?.handle
-  const tagline = home?.tagline || fallback.tagline
   const socials = home?.socials ?? []
   const attr = (path: string) =>
     home?._id ? dataAttr({id: home._id, type: 'home', path}).toString() : undefined
@@ -50,13 +24,13 @@ export default async function Page() {
       <section className="compact-home motion-enter" aria-labelledby="home-title">
         <header className="compact-home__header">
           <h1 id="home-title" className="name-swap-trigger" aria-label={name}>
-            <NameSwap name={name} handle={handle} />
+            <NameSwap name={name} handle={home?.handle} />
           </h1>
-          <p>{tagline}</p>
+          <p>{home?.tagline || fallback.tagline}</p>
         </header>
         <div className="compact-home__copy" data-sanity={attr('bio')}>
           {home?.bio?.length ? (
-            <PortableText value={home.bio} components={bioComponents} />
+            <RichText value={home.bio} linkClassName="inline-link" />
           ) : (
             <p>Add your bio under Home → Bio in the Studio.</p>
           )}
@@ -64,25 +38,11 @@ export default async function Page() {
         {socials.length > 0 && (
           <div className="compact-home__social-block">
             <p className="eyebrow">Socials</p>
-            <ul
-              className="compact-home__socials"
-              aria-label="Social profiles"
+            <SocialLinks
+              socials={socials}
+              listClassName="compact-home__socials"
               data-sanity={attr('socials')}
-            >
-              {socials.map((social) => (
-                <li key={social._key}>
-                  <a
-                    href={social.url}
-                    target="_blank"
-                    rel="me noopener noreferrer"
-                    aria-label={`${social.label} (opens in a new tab)`}
-                  >
-                    {social.label}
-                    <ArrowIcon />
-                  </a>
-                </li>
-              ))}
-            </ul>
+            />
           </div>
         )}
       </section>

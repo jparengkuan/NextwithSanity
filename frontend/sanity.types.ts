@@ -701,7 +701,7 @@ export type ResumeQueryResult = string | null
 
 // Source: sanity/lib/queries.ts
 // Variable: homeQuery
-// Query: *[_type == "home" && _id == "home"][0]{    ...,    bio[]{      ...,      markDefs[]{        ...,        _type == "link" => {          "page": page->slug.current,          "post": post->slug.current        }      }    }  }
+// Query: *[_type == "home" && _id == "home"][0]{    ...,    bio[]{        ...,  markDefs[]{    ...,      _type == "link" => {    "page": page->slug.current,    "post": post->slug.current  }  }    }  }
 export type HomeQueryResult = {
   _id: 'home'
   _type: 'home'
@@ -793,7 +793,7 @@ export type BlogListQueryResult = Array<{
 
 // Source: sanity/lib/queries.ts
 // Variable: blogPostQuery
-// Query: *[_type == "post" && slug.current == $slug && !defined(externalUrl)][0]{    _id,    "title": coalesce(title, "Untitled"),    excerpt,    coverImage,    "date": coalesce(date, _updatedAt),    "author": author->{firstName, lastName},    content[]{      ...,      markDefs[]{        ...,        _type == "link" => {          "page": page->slug.current,          "post": post->slug.current        }      }    }  }
+// Query: *[_type == "post" && slug.current == $slug && !defined(externalUrl)][0]{    _id,    "title": coalesce(title, "Untitled"),    excerpt,    coverImage,    "date": coalesce(date, _updatedAt),    "author": author->{firstName, lastName},    content[]{        ...,  markDefs[]{    ...,      _type == "link" => {    "page": page->slug.current,    "post": post->slug.current  }  }    }  }
 export type BlogPostQueryResult = {
   _id: string
   title: string
@@ -873,7 +873,7 @@ export type ProjectsQueryResult = Array<{
 
 // Source: sanity/lib/queries.ts
 // Variable: getPageQuery
-// Query: *[_type == 'page' && slug.current == $slug][0]{    _id,    _type,    name,    slug,    heading,    subheading,    "pageBuilder": pageBuilder[]{      ...,      _type == "callToAction" => {        ...,        button {          ...,            link {      ...,        _type == "link" => {    "page": page->slug.current,    "post": post->slug.current  }      }        }      },      _type == "infoSection" => {        content[]{          ...,          markDefs[]{            ...,              _type == "link" => {    "page": page->slug.current,    "post": post->slug.current  }          }        }      },    },  }
+// Query: *[_type == 'page' && slug.current == $slug][0]{    _id,    _type,    name,    slug,    heading,    subheading,    "pageBuilder": pageBuilder[]{      ...,      _type == "callToAction" => {        ...,        button {          ...,            link {      ...,        _type == "link" => {    "page": page->slug.current,    "post": post->slug.current  }      }        }      },      _type == "infoSection" => {        content[]{            ...,  markDefs[]{    ...,      _type == "link" => {    "page": page->slug.current,    "post": post->slug.current  }  }        }      },    },  }
 export type GetPageQueryResult = {
   _id: string
   _type: 'page'
@@ -982,15 +982,15 @@ declare module '@sanity/client' {
     '*[_type == "settings"][0]': SettingsQueryResult
     '\n  *[_type == "settings"][0].contactEmail\n': ContactEmailQueryResult
     '\n  *[_type == "settings"][0].resume.asset->url\n': ResumeQueryResult
-    '\n  *[_type == "home" && _id == "home"][0]{\n    ...,\n    bio[]{\n      ...,\n      markDefs[]{\n        ...,\n        _type == "link" => {\n          "page": page->slug.current,\n          "post": post->slug.current\n        }\n      }\n    }\n  }\n': HomeQueryResult
+    '\n  *[_type == "home" && _id == "home"][0]{\n    ...,\n    bio[]{\n      \n  ...,\n  markDefs[]{\n    ...,\n    \n  _type == "link" => {\n    "page": page->slug.current,\n    "post": post->slug.current\n  }\n\n  }\n\n    }\n  }\n': HomeQueryResult
     '\n  *[_type == "projectsPage" && _id == "projectsPage"][0]{_id, eyebrow, heading, intro}\n': ProjectsPageQueryResult
     '\n  *[_type == "contactPage" && _id == "contactPage"][0]{_id, eyebrow, heading, intro, successMessage}\n': ContactPageQueryResult
     '\n  *[_type == "blogsPage" && _id == "blogsPage"][0]{_id, eyebrow, heading, intro}\n': BlogsPageQueryResult
     '\n  *[_type == "post" && (defined(slug.current) || defined(externalUrl))] | order(date desc, _updatedAt desc) {\n    _id,\n    "title": coalesce(title, "Untitled"),\n    "slug": slug.current,\n    externalUrl,\n    externalAuthor,\n    externalSite,\n    excerpt,\n    tags,\n    "date": coalesce(date, _updatedAt),\n    "author": author->{firstName, lastName}\n  }\n': BlogListQueryResult
-    '\n  *[_type == "post" && slug.current == $slug && !defined(externalUrl)][0]{\n    _id,\n    "title": coalesce(title, "Untitled"),\n    excerpt,\n    coverImage,\n    "date": coalesce(date, _updatedAt),\n    "author": author->{firstName, lastName},\n    content[]{\n      ...,\n      markDefs[]{\n        ...,\n        _type == "link" => {\n          "page": page->slug.current,\n          "post": post->slug.current\n        }\n      }\n    }\n  }\n': BlogPostQueryResult
+    '\n  *[_type == "post" && slug.current == $slug && !defined(externalUrl)][0]{\n    _id,\n    "title": coalesce(title, "Untitled"),\n    excerpt,\n    coverImage,\n    "date": coalesce(date, _updatedAt),\n    "author": author->{firstName, lastName},\n    content[]{\n      \n  ...,\n  markDefs[]{\n    ...,\n    \n  _type == "link" => {\n    "page": page->slug.current,\n    "post": post->slug.current\n  }\n\n  }\n\n    }\n  }\n': BlogPostQueryResult
     '\n  *[_type == "post" && defined(slug.current) && !defined(externalUrl)]{"slug": slug.current}\n': BlogSlugsQueryResult
     '\n  *[_type == "project" && defined(title)] | order(date desc, _createdAt desc) {\n    _id,\n    title,\n    status,\n    summary,\n    details,\n    tags,\n    links\n  }\n': ProjectsQueryResult
-    '\n  *[_type == \'page\' && slug.current == $slug][0]{\n    _id,\n    _type,\n    name,\n    slug,\n    heading,\n    subheading,\n    "pageBuilder": pageBuilder[]{\n      ...,\n      _type == "callToAction" => {\n        ...,\n        button {\n          ...,\n          \n  link {\n      ...,\n      \n  _type == "link" => {\n    "page": page->slug.current,\n    "post": post->slug.current\n  }\n\n      }\n\n        }\n      },\n      _type == "infoSection" => {\n        content[]{\n          ...,\n          markDefs[]{\n            ...,\n            \n  _type == "link" => {\n    "page": page->slug.current,\n    "post": post->slug.current\n  }\n\n          }\n        }\n      },\n    },\n  }\n': GetPageQueryResult
+    '\n  *[_type == \'page\' && slug.current == $slug][0]{\n    _id,\n    _type,\n    name,\n    slug,\n    heading,\n    subheading,\n    "pageBuilder": pageBuilder[]{\n      ...,\n      _type == "callToAction" => {\n        ...,\n        button {\n          ...,\n          \n  link {\n      ...,\n      \n  _type == "link" => {\n    "page": page->slug.current,\n    "post": post->slug.current\n  }\n\n      }\n\n        }\n      },\n      _type == "infoSection" => {\n        content[]{\n          \n  ...,\n  markDefs[]{\n    ...,\n    \n  _type == "link" => {\n    "page": page->slug.current,\n    "post": post->slug.current\n  }\n\n  }\n\n        }\n      },\n    },\n  }\n': GetPageQueryResult
     '\n  *[_type == "page" || _type == "post" && defined(slug.current)] | order(_type asc) {\n    "slug": slug.current,\n    _type,\n    _updatedAt,\n  }\n': SitemapDataResult
     '\n  *[_type == "page" && defined(slug.current)]\n  {"slug": slug.current}\n': PagesSlugsResult
   }

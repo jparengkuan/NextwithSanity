@@ -1,6 +1,8 @@
 import {ProjectsIcon} from '@sanity/icons'
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
+import {labeledLinkMember} from '../fields'
+
 /**
  * Project schema. Listed on /projects, newest first.
  */
@@ -57,27 +59,7 @@ export const project = defineType({
       name: 'links',
       title: 'Links',
       type: 'array',
-      of: [
-        defineArrayMember({
-          type: 'object',
-          name: 'projectLink',
-          fields: [
-            defineField({
-              name: 'label',
-              title: 'Label',
-              type: 'string',
-              validation: (rule) => rule.required(),
-            }),
-            defineField({
-              name: 'url',
-              title: 'URL',
-              type: 'url',
-              validation: (rule) => rule.required(),
-            }),
-          ],
-          preview: {select: {title: 'label', subtitle: 'url'}},
-        }),
-      ],
+      of: [labeledLinkMember('projectLink')],
     }),
   ],
   orderings: [{title: 'Date, newest', name: 'dateDesc', by: [{field: 'date', direction: 'desc'}]}],

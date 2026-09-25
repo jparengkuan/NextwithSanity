@@ -1,5 +1,32 @@
 import {defineQuery} from 'next-sanity'
 
+// Resolves page/post references in a link to their slugs (see linkResolver)
+const linkReference = /* groq */ `
+  _type == "link" => {
+    "page": page->slug.current,
+    "post": post->slug.current
+  }
+`
+
+const linkFields = /* groq */ `
+  link {
+      ...,
+      ${linkReference}
+      }
+`
+
+// Portable Text blocks with their link annotations resolved
+const blocksWithLinks = /* groq */ `
+  ...,
+  markDefs[]{
+    ...,
+    ${linkReference}
+  }
+`
+
+// Eyebrow, heading and intro shared by the Projects, Blogs and Contact page singletons
+const pageIntroFields = /* groq */ `_id, eyebrow, heading, intro`
+
 export const settingsQuery = defineQuery(`*[_type == "settings"][0]`)
 
 export const contactEmailQuery = defineQuery(`
@@ -14,28 +41,21 @@ export const homeQuery = defineQuery(`
   *[_type == "home" && _id == "home"][0]{
     ...,
     bio[]{
-      ...,
-      markDefs[]{
-        ...,
-        _type == "link" => {
-          "page": page->slug.current,
-          "post": post->slug.current
-        }
-      }
+      ${blocksWithLinks}
     }
   }
 `)
 
 export const projectsPageQuery = defineQuery(`
-  *[_type == "projectsPage" && _id == "projectsPage"][0]{_id, eyebrow, heading, intro}
+  *[_type == "projectsPage" && _id == "projectsPage"][0]{${pageIntroFields}}
 `)
 
 export const contactPageQuery = defineQuery(`
-  *[_type == "contactPage" && _id == "contactPage"][0]{_id, eyebrow, heading, intro, successMessage}
+  *[_type == "contactPage" && _id == "contactPage"][0]{${pageIntroFields}, successMessage}
 `)
 
 export const blogsPageQuery = defineQuery(`
-  *[_type == "blogsPage" && _id == "blogsPage"][0]{_id, eyebrow, heading, intro}
+  *[_type == "blogsPage" && _id == "blogsPage"][0]{${pageIntroFields}}
 `)
 
 export const blogListQuery = defineQuery(`
@@ -62,14 +82,7 @@ export const blogPostQuery = defineQuery(`
     "date": coalesce(date, _updatedAt),
     "author": author->{firstName, lastName},
     content[]{
-      ...,
-      markDefs[]{
-        ...,
-        _type == "link" => {
-          "page": page->slug.current,
-          "post": post->slug.current
-        }
-      }
+      ${blocksWithLinks}
     }
   }
 `)
@@ -90,20 +103,6 @@ export const projectsQuery = defineQuery(`
   }
 `)
 
-const linkReference = /* groq */ `
-  _type == "link" => {
-    "page": page->slug.current,
-    "post": post->slug.current
-  }
-`
-
-const linkFields = /* groq */ `
-  link {
-      ...,
-      ${linkReference}
-      }
-`
-
 export const getPageQuery = defineQuery(`
   *[_type == 'page' && slug.current == $slug][0]{
     _id,
@@ -123,11 +122,7 @@ export const getPageQuery = defineQuery(`
       },
       _type == "infoSection" => {
         content[]{
-          ...,
-          markDefs[]{
-            ...,
-            ${linkReference}
-          }
+          ${blocksWithLinks}
         }
       },
     },

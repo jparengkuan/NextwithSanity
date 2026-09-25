@@ -1,10 +1,10 @@
 import type {Metadata} from 'next'
 
+import PageIntro from '@/app/components/portfolio/PageIntro'
 import {contactPageQuery} from '@/sanity/lib/queries'
 import {sanityFetch} from '@/sanity/lib/live'
 import ContactForm from './ContactForm'
 
-// Shown until the Contact Page document is published in the Studio.
 const fallback = {
   eyebrow: 'Contact',
   heading: 'Get in touch',
@@ -26,11 +26,7 @@ export default async function ContactPage() {
 
   return (
     <main id="main-content" className="shell main-content">
-      <header className="page-intro motion-enter">
-        <p className="eyebrow">{page?.eyebrow || fallback.eyebrow}</p>
-        <h1>{page?.heading || fallback.heading}</h1>
-        <p>{page?.intro || fallback.intro}</p>
-      </header>
+      <PageIntro content={page} fallback={fallback} />
       <section className="contact motion-enter" aria-label="Contact form">
         <ContactForm successMessage={plain?.successMessage || fallback.successMessage} />
       </section>
